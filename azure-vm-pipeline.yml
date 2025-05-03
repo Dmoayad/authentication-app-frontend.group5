@@ -65,13 +65,14 @@ stages:
                     runOptions: 'inline' # Use inline option
                     inline: |
                       # Build the command string to be executed on the jumphost
+                      PRIVATE_KEY_PATH="/home/moayad/key.pem"
                       DEPLOY_COMMAND="docker pull $(imageRepository):$(tag) \
                       && docker stop my-web-app-container || true \
                       && docker rm my-web-app-container || true \
                       && docker run -d --name my-web-app-container -p 80:3000 $(imageRepository):$(tag)"
 
                       # SSH to the frontend VM and execute the deploy command
-                      ssh -o StrictHostKeyChecking=no $(vmUsername)@$(frontendVm1PrivateIP) "\$DEPLOY_COMMAND"
+                      ssh -o StrictHostKeyChecking=no -i \"\$PRIVATE_KEY_PATH\" $(vmUsername)@$(frontendVm1PrivateIP) "\$DEPLOY_COMMAND"
                 # # Deploy to Frontend VM 2 via Jumphost
                 # - task: SSH@0
                 #   displayName: Deploy to Frontend VM 2
