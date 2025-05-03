@@ -54,6 +54,11 @@ stages:
                 #     sshKeySecureFile: '$(sshKeySecureFile)'
 
                 # Deploy to Frontend VM 1 via Jumphost
+                - task: Bash@3
+                  displayName: List files in source directory
+                  inputs:
+                    targetType: 'inline'
+                    script: 'ls -l $(Build.SourcesDirectory)'
                 - task: SSH@0
                   displayName: Deploy to Frontend VM 1
                   inputs:
