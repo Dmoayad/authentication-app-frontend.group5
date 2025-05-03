@@ -1,0 +1,106 @@
+trigger:
+  branches:
+    - main # Or whichever branch you use for releases
+
+variables:
+  dockerRegistryServiceConnection: 'dockerhub_connection'
+  imageRepository: 'dmoayad/authentication_app_frontend' # Name of your Docker image
+  dockerFilePath: '$(Build.SourcesDirectory)/Dockerfile' # Path to your Dockerfile
+  tag: '$(Build.BuildId)'
+  vmUsername: 'moayad'
+  jumpHostIP: '13.86.93.117'
+  frontendVm1PrivateIP: '10.0.2.4'
+  frontendVm2PrivateIP: '10.0.2.5'
+  sshKeySecureFile: 'key.pem' # Upload your SSH private key as a Secure File in Azure DevOps
+
+stages:
+  - stage: BuildAndPush
+    displayName: Build and push Docker image
+    jobs:
+      - job: BuildPush
+        displayName: Build and Push
+        pool:
+          vmImage: 'ubuntu-latest' # Or your preferred agent image
+
+        steps:
+          - task: Docker@2
+            displayName: Build and push an image to Azure Container Registry
+            inputs:
+              containerRegistry: '$(dockerRegistryServiceConnection)'
+              repository: '$(imageRepository)'
+              command: 'buildAndPush'
+              Dockerfile: '$(dockerFilePath)'
+              tags: '$(tag)'
+
+  - stage: DeployFrontend
+    displayName: Deploy to Frontend VMs
+    jobs:
+      - deployment: DeployToFrontend
+        displayName: Deploy Web App
+        environment: 'production-frontend' # Or a suitable environment name
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                # Option 1: Using SSH via Jumphost
+                # This involves using SSH tasks and potentially scripting for deployment
+
+                - task: InstallSSHKey@0
+                  displayName: Install SSH Key
+                  inputs:
+                    knownHostsEntry: |
+                      # Add the public key of your jumphost here
+                      # Example: [jumphost.eastus.cloudapp.azure.com]:22 ssh-rsa AAAA...
+                    sshPublicKey: '' # Leave empty if using a secure file for the private key
+                    sshKeySecureFile: '$(sshKeySecureFile)'
+
+                # Deploy to Frontend VM 1 via Jumphost
+                - task: SSH@0
+                  displayName: Deploy to Frontend VM 1
+                  inputs:
+                    sshEndpoint: '<Your SSH Service Connection Name to Jumphost>' # Create an SSH Service Connection to your Jumphost
+                    runOptions: 'run'
+                    inline: |
+                      ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $(vmUsername)@$(frontendVm1PrivateIP) << EOF
+                      # Deployment script for VM 1
+                      # Example: Pull the latest Docker image and restart the container
+                      docker pull $(imageRepository):$(tag)
+                      docker stop my-web-app-container || true # Stop if running
+                      docker rm my-web-app-container || true  # Remove if exists
+                      docker run -d --name my-web-app-container -p 80:80 <Your Azure Container Registry Name>.azurecr.io/$(imageRepository):$(tag)
+                      EOF
+
+                # Deploy to Frontend VM 2 via Jumphost
+                # - task: SSH@0
+                #   displayName: Deploy to Frontend VM 2
+                #   inputs:
+                #     sshEndpoint: '<Your SSH Service Connection Name to Jumphost>' # Reuse the SSH Service Connection to your Jumphost
+                #     runOptions: 'run'
+                #     inline: |
+                #       ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $(vmUsername)@$(frontendVm2PrivateIP) << EOF
+                #       # Deployment script for VM 2
+                #       docker pull <Your Azure Container Registry Name>.azurecr.io/$(imageRepository):$(tag)
+                #       docker stop my-web-app-container || true
+                #       docker rm my-web-app-container || true
+                #       docker run -d --name my-web-app-container -p 80:80 <Your Azure Container Registry Name>.azurecr.io/$(imageRepository):$(tag)
+                #       EOF
+
+                # Option 2: Using Azure DevOps Deployment Groups (Recommended for better manageability)
+                # This involves installing Azure DevOps agents on the frontend VMs
+
+                # - task: Bash@3
+                #   displayName: Deploy using Deployment Group
+                #   inputs:
+                #     targetType: 'inline'
+                #     script: |
+                #       # This section is more conceptual as Deployment Groups are configured separately
+                #       # The deployment logic is handled by the Deployment Group job
+                #       echo "Deployment to Deployment Group 'your-frontend-deployment-group' is triggered."
+                #       # You would configure a deployment group job in your release pipeline
+                #       # and target the VMs in that group. The agent on each VM would
+                #       # execute the deployment script (e.g., pulling and running the Docker image).
+
+                # This option would typically be in a release pipeline, not a build pipeline.
+                # However, you can use multi-stage pipelines and have a deployment job
+                # target a deployment group directly in the YAML.
+
