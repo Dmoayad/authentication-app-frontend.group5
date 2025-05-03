@@ -62,11 +62,10 @@ stages:
                 - task: SSH@0
                   displayName: Deploy to Frontend VM 1
                   inputs:
-                    sshEndpoint: '$(ssh-connection)' # Create an SSH Service Connection to your Jumphost
-                    runOptions: 'script' # Use 'script' option
-                    scriptPath: 'deploy_frontend.sh' # Path to your deployment script
-                    arguments: '"$(vmUsername)" "$(frontendVm1PrivateIP)" "$(imageRepository)" "latest"' # Pass variables as arguments (ACR name removed)
-
+                    sshEndpoint: '$(ssh-connection)'
+                    runOptions: 'script'
+                    scriptPath: '$(Build.SourcesDirectory)/deploy_frontend.sh' # Use full path
+                    arguments: '"$(vmUsername)" "$(frontendVm1PrivateIP)" "$(imageRepository)" "latest"'
                 # # Deploy to Frontend VM 2 via Jumphost
                 # - task: SSH@0
                 #   displayName: Deploy to Frontend VM 2
