@@ -47,11 +47,10 @@ stages:
                 - task: InstallSSHKey@0
                   displayName: Install SSH Key
                   inputs:
-                    knownHostsEntry: |
-                      # Add the public key of your jumphost here
-                      # Example: [jumphost.eastus.cloudapp.azure.com]:22 ssh-rsa AAAA...
-                    sshPublicKey: '' # Leave empty if using a secure file for the private key
-                    sshKeySecureFile: '$(sshKeySecureFile)'
+                    knownHostsEntry: '' # You can leave this empty for now if using -o StrictHostKeyChecking=no
+                    sshPublicKey: '' # Leave empty when using a secure file for the private key
+                    sshKeySecureFile: '$(sshKeySecureFile)' # Your secure file name
+
 
                 # Deploy to Frontend VM 1 via Jumphost
                 # - task: Bash@3
