@@ -44,12 +44,12 @@ stages:
               steps:
                 # You may still need to install the SSH key if your jumphost requires it
                 # based on the SSH Service Connection configuration.
-                - task: InstallSSHKey@0
-                  displayName: Install SSH Key
-                  inputs:
-                    knownHostsEntry: '' # You can leave this empty for now if using -o StrictHostKeyChecking=no
-                    sshPublicKey: '' # Leave empty when using a secure file for the private key
-                    sshKeySecureFile: '$(sshKeySecureFile)' # Your secure file name
+                # - task: InstallSSHKey@0
+                #   displayName: Install SSH Key
+                #   inputs:
+                #     knownHostsEntry: '' # You can leave this empty for now if using -o StrictHostKeyChecking=no
+                #     sshPublicKey: '' # Leave empty when using a secure file for the private key
+                #     sshKeySecureFile: '$(sshKeySecureFile)' # Your secure file name
 
 
                 # Deploy to Frontend VM 1 via Jumphost
