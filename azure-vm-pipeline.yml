@@ -1,6 +1,5 @@
 trigger:
-  branches:
-    - main # Or whichever branch you use for releases
+  - main # Or whichever branch you use for releases
 
 variables:
   dockerRegistryServiceConnection: 'dockerhub_connection'
