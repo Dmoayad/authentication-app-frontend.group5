@@ -7,6 +7,7 @@ variables:
   dockerFilePath: '$(Build.SourcesDirectory)/Dockerfile' # Path to your Dockerfile
   tag: '$(Build.BuildId)'
   vmUsername: 'moayad'
+  ssh-connection: 'jumphost-vm-connection'
   jumpHostIP: '13.86.93.117'
   frontendVm1PrivateIP: '10.0.2.4'
   frontendVm2PrivateIP: '10.0.2.5'
@@ -57,7 +58,7 @@ stages:
                 - task: SSH@0
                   displayName: Deploy to Frontend VM 1
                   inputs:
-                    sshEndpoint: '<Your SSH Service Connection Name to Jumphost>' # Create an SSH Service Connection to your Jumphost
+                    sshEndpoint: '$(ssh-connection)' # Create an SSH Service Connection to your Jumphost
                     runOptions: 'run'
                     inline: |
                       ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $(vmUsername)@$(frontendVm1PrivateIP) << EOF
@@ -66,7 +67,7 @@ stages:
                       docker pull $(imageRepository):$(tag)
                       docker stop my-web-app-container || true # Stop if running
                       docker rm my-web-app-container || true  # Remove if exists
-                      docker run -d --name my-web-app-container -p 80:80 <Your Azure Container Registry Name>.azurecr.io/$(imageRepository):$(tag)
+                      docker run -d --name my-web-app-container -p 80:3000 $(imageRepository):$(tag)
                       EOF
 
                 # Deploy to Frontend VM 2 via Jumphost
