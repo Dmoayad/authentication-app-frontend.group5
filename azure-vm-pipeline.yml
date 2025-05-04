@@ -92,7 +92,7 @@ stages:
                       # SSH to the frontend VM and execute the deploy commands with conditional logic.
                       # Use double quotes for the remote command block to handle potential variables
                       # and multiline commands.
-                      ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm1PrivateIP) "
+                      ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm2PrivateIP) "
                         echo 'Stopping and removing existing container (if any)...'
                         if docker inspect  $(app-name) >/dev/null 2>&1; then
                           docker rm -f  $(app-name)
