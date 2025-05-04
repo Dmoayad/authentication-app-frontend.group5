@@ -71,46 +71,49 @@ stages:
                       PRIVATE_KEY_PATH="/home/moayad/key.pem"
 
                       # Ensure the private key has correct permissions (optional but recommended)
-                      # This is less critical since you confirmed the permissions are already 600
-                      # but doesn't hurt to keep as a safeguard.
                       chmod 600 "$PRIVATE_KEY_PATH" || true
 
-                      # Build the command string to be executed on the jumphost
-                      # Ensure correct quoting for the deploy command that will run on the frontend VM
-                      DEPLOY_COMMAND="docker pull $(imageRepository):$(tag) \
-                      # && docker stop my-web-app-container || true \
-                      # && docker rm my-web-app-container || true \
-                      && docker run -d --name $(app-name) -p 80:3000 $(imageRepository):$(tag)"
+                      # SSH to the frontend VM and execute the deploy commands with conditional logic.
+                      # Use double quotes for the remote command block to handle potential variables
+                      # and multiline commands.
+                      ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm1PrivateIP) "
+                        echo 'Stopping and removing existing container (if any)...'
+                        if docker inspect  $(app-name) >/dev/null 2>&1; then
+                          docker rm -f  $(app-name)
+                        else
+                          echo 'Container $(app-name) not found. Skipping removal.'
+                        fi
 
-                      # SSH to the frontend VM and execute the deploy command, explicitly using the private key
-                      # Use single quotes around the DEPLOY_COMMAND variable to ensure it's treated as a single string
-                      # by the remote shell on the frontend VM.
-                      ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm1PrivateIP) $DEPLOY_COMMAND                
-                      
-                # Deploy to Frontend VM 2 via Jumphost
-                - task: SSH@0
-                  displayName: Deploy to Frontend VM 2
-                  inputs:
-                    sshEndpoint: '$(ssh-connection)'
-                    runOptions: 'inline' # Use inline option
-                    inline: |
+                        echo 'Pulling the latest Docker image...'
+                        docker pull $(imageRepository):$(tag)
 
-                      # Define the path to the private key on the jumphost
-                      PRIVATE_KEY_PATH="/home/moayad/key.pem"
+                        echo 'Running the new container...'
+                        docker run -d --name $(app-name) -p 80:3000 $(imageRepository):$(tag)"                      
 
-                      # Ensure the private key has correct permissions (optional but recommended)
-                      # This is less critical since you confirmed the permissions are already 600
-                      # but doesn't hurt to keep as a safeguard.
-                      chmod 600 "$PRIVATE_KEY_PATH" || true
+                # # Deploy to Frontend VM 2 via Jumphost
+                # - task: SSH@0
+                #   displayName: Deploy to Frontend VM 2
+                #   inputs:
+                #     sshEndpoint: '$(ssh-connection)'
+                #     runOptions: 'inline' # Use inline option
+                #     inline: |
 
-                      # Build the command string to be executed on the jumphost
-                      # Ensure correct quoting for the deploy command that will run on the frontend VM
-                      DEPLOY_COMMAND="docker pull $(imageRepository):$(tag) \
-                      # && docker stop my-web-app-container || true \
-                      # && docker rm my-web-app-container || true \
-                      && docker run -d --name $(app-name) -p 80:3000 $(imageRepository):$(tag)"
+                #       # Define the path to the private key on the jumphost
+                #       PRIVATE_KEY_PATH="/home/moayad/key.pem"
 
-                      # SSH to the frontend VM and execute the deploy command, explicitly using the private key
-                      # Use single quotes around the DEPLOY_COMMAND variable to ensure it's treated as a single string
-                      # by the remote shell on the frontend VM.
-                      ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm2PrivateIP) $DEPLOY_COMMAND
+                #       # Ensure the private key has correct permissions (optional but recommended)
+                #       # This is less critical since you confirmed the permissions are already 600
+                #       # but doesn't hurt to keep as a safeguard.
+                #       chmod 600 "$PRIVATE_KEY_PATH" || true
+
+                #       # Build the command string to be executed on the jumphost
+                #       # Ensure correct quoting for the deploy command that will run on the frontend VM
+                #       DEPLOY_COMMAND="docker pull $(imageRepository):$(tag) \
+                #       # && docker stop my-web-app-container || true \
+                #       # && docker rm my-web-app-container || true \
+                #       && docker run -d --name $(app-name) -p 80:3000 $(imageRepository):$(tag)"
+
+                #       # SSH to the frontend VM and execute the deploy command, explicitly using the private key
+                #       # Use single quotes around the DEPLOY_COMMAND variable to ensure it's treated as a single string
+                #       # by the remote shell on the frontend VM.
+                #       ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm2PrivateIP) $DEPLOY_COMMAND
