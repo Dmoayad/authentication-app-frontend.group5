@@ -87,11 +87,30 @@ stages:
                       # by the remote shell on the frontend VM.
                       ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm1PrivateIP) $DEPLOY_COMMAND                
                       
-                # # Deploy to Frontend VM 2 via Jumphost
-                # - task: SSH@0
-                #   displayName: Deploy to Frontend VM 2
-                #   inputs:
-                #     sshEndpoint: '$(ssh-connection)' # Reuse the SSH Service Connection to your Jumphost
-                #     runOptions: 'script' # Use 'script' option
-                #     scriptPath: '$(Build.SourcesDirectory)/deploy_frontend.sh' # Path to your deployment script
-                #     arguments: '"$(vmUsername)" "$(frontendVm2PrivateIP)" "$(imageRepository)" "$(tag)"' # Pass variables as arguments (ACR name removed)
+                # Deploy to Frontend VM 2 via Jumphost
+                - task: SSH@0
+                  displayName: Deploy to Frontend VM 2
+                  inputs:
+                    sshEndpoint: '$(ssh-connection)'
+                    runOptions: 'inline' # Use inline option
+                    inline: |
+
+                      # Define the path to the private key on the jumphost
+                      PRIVATE_KEY_PATH="/home/moayad/key.pem"
+
+                      # Ensure the private key has correct permissions (optional but recommended)
+                      # This is less critical since you confirmed the permissions are already 600
+                      # but doesn't hurt to keep as a safeguard.
+                      chmod 600 "$PRIVATE_KEY_PATH" || true
+
+                      # Build the command string to be executed on the jumphost
+                      # Ensure correct quoting for the deploy command that will run on the frontend VM
+                      DEPLOY_COMMAND="docker pull $(imageRepository):$(tag) \
+                      # && docker stop my-web-app-container || true \
+                      # && docker rm my-web-app-container || true \
+                      && docker run -d --name $(app-name) -p 80:3000 $(imageRepository):$(tag)"
+
+                      # SSH to the frontend VM and execute the deploy command, explicitly using the private key
+                      # Use single quotes around the DEPLOY_COMMAND variable to ensure it's treated as a single string
+                      # by the remote shell on the frontend VM.
+                      ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm2PrivateIP) $DEPLOY_COMMAND
