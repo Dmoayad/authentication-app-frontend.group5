@@ -33,7 +33,7 @@ stages:
               Dockerfile: '$(dockerFilePath)'
               tags: |
                 latest
-                '$(dockerTag)'
+                $(dockerTag)
 
   - stage: DeployFrontend
     displayName: Deploy to Frontend VMs
