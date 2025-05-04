@@ -15,23 +15,23 @@ variables:
   sshKeySecureFile: 'key.pem' # Upload your SSH private key as a Secure File in Azure DevOps
 
 stages:
-  # - stage: BuildAndPush
-  #   displayName: Build and push Docker image to Docker Hub
-  #   jobs:
-  #     - job: BuildPush
-  #       displayName: Build and Push to Docker Hub
-  #       pool:
-  #         vmImage: 'ubuntu-latest' # Or your preferred agent image
+  - stage: BuildAndPush
+    displayName: Build and push Docker image to Docker Hub
+    jobs:
+      - job: BuildPush
+        displayName: Build and Push to Docker Hub
+        pool:
+          vmImage: 'ubuntu-latest' # Or your preferred agent image
 
-  #       steps:
-  #         - task: Docker@2
-  #           displayName: Build and push an image to Docker Hub
-  #           inputs:
-  #             containerRegistry: '$(dockerRegistryServiceConnection)' # Use your Docker Hub Service Connection
-  #             repository: '$(imageRepository)'
-  #             command: 'buildAndPush'
-  #             Dockerfile: '$(dockerFilePath)'
-  #             tags: '$(tag)'
+        steps:
+          - task: Docker@2
+            displayName: Build and push an image to Docker Hub
+            inputs:
+              containerRegistry: '$(dockerRegistryServiceConnection)' # Use your Docker Hub Service Connection
+              repository: '$(imageRepository)'
+              command: 'buildAndPush'
+              Dockerfile: '$(dockerFilePath)'
+              tags: '$(tag)'
 
   - stage: DeployFrontend
     displayName: Deploy to Frontend VMs
