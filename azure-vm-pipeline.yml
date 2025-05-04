@@ -67,7 +67,7 @@ stages:
                     inline: |
 
                       # Define the path to the private key on the jumphost
-                      PRIVATE_KEY_PATH="~/key.pem"
+                      PRIVATE_KEY_PATH="/home/moayad/key.pem"
 
                       # Ensure the private key has correct permissions (optional but recommended)
                       # This is less critical since you confirmed the permissions are already 600
