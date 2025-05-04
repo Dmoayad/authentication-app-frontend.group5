@@ -84,7 +84,7 @@ stages:
                       # SSH to the frontend VM and execute the deploy command, explicitly using the private key
                       # Use single quotes around the DEPLOY_COMMAND variable to ensure it's treated as a single string
                       # by the remote shell on the frontend VM.
-                      ssh -o StrictHostKeyChecking=no -i \"\$PRIVATE_KEY_PATH\" $(vmUsername)@$(frontendVm1PrivateIP) '\$DEPLOY_COMMAND'                
+                      ssh -o StrictHostKeyChecking=no -i "$PRIVATE_KEY_PATH" $(vmUsername)@$(frontendVm1PrivateIP) $DEPLOY_COMMAND                
                       
                 # # Deploy to Frontend VM 2 via Jumphost
                 # - task: SSH@0
