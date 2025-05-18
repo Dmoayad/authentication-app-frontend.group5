@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deploy
+  labels:
+    app: frontend-app
+  namespace: auth-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-app
+  template:
+    metadata:
+      name: frontend-app
+      labels:
+        app: frontend-app
+    spec:
+      containers:
+        - name: frontend-app
+          image: dmoayad/authentication_app_frontend:latest
+          env:
+          - name: NEXT_PUBLIC_API_URL
+            value: "http://backend-clusterip-service"
+          ports:
+            - containerPort: 3000

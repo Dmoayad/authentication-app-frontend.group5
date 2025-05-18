@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-configmap
+  namespace: auth-app
+data:
+  config.json: |
+    {
+      "API_URL": "http://backend-clusterip-service.trainer-portal/"
+    }
