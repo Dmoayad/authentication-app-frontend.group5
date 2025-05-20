@@ -1,0 +1,78 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  dockerRegistryServiceConnection: 'dockerhub_connection'
+  imageRepository: 'dmoayad/authentication_app_frontend'
+  dockerfilePath: 'Dockerfile'
+  tag: '$(Build.BuildId)'
+  containerRegistry: 'dmoayad/authentication_app_frontend'
+  kubernetesServiceConnection: 'azurerm-connection'
+  k8sNamespace: 'auth-app'
+
+stages:
+
+# -------------------------------------
+# Stage 1: CI - Build, Test, Dockerize, Scan
+# -------------------------------------
+- stage: CI
+  displayName: 'Build, Test, Dockerize, Scan'
+  jobs:
+    - job: BuildAndPush
+      displayName: 'Build and Push Docker Image'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - checkout: self
+
+        # Docker Build
+        - task: Docker@2
+          displayName: 'Build Docker Image'
+          inputs:
+            command: build
+            containerRegistry: $(dockerRegistryServiceConnection)
+            repository: $(imageRepository)
+            dockerfile: $(dockerfilePath)
+            tags: |
+              $(tag)
+              latest
+
+        # Docker Push
+        - task: Docker@2
+          displayName: 'Push Docker Image'
+          inputs:
+            command: push
+            containerRegistry: $(dockerRegistryServiceConnection)
+            repository: $(imageRepository)
+            tags: |
+              $(tag)
+              latest
+
+# -------------------------------------
+# Stage 2: CD - Deploy to Kubernetes
+# -------------------------------------
+- stage: CD
+  displayName: 'Deploy to AKS'
+  dependsOn: CI
+  jobs:
+    - job: DeployToAKS
+      displayName: 'Apply Kubernetes YAMLs'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - checkout: self
+
+        - task: Kubernetes@1
+          displayName: 'Deploy to AKS'
+          inputs:
+            connectionType: 'Azure Resource Manager'
+            azureSubscriptionEndpoint: $(kubernetesServiceConnection)
+            azureResourceGroup: 'devops2-group5-rg'
+            kubernetesCluster: 'devops2-group5-aks'
+            namespace: $(k8sNamespace)
+            command: 'apply'
+            arguments: '-f k8s/namespace.yml -f k8s/frontend_clusterip.yml -f k8s/frontend_deploy.yml -f k8s/frontend_ingress.yml'
+
+
