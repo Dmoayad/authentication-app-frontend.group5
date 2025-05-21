@@ -11,6 +11,9 @@ variables:
   containerRegistry: 'dmoayad/authentication_app_frontend'
   kubernetesServiceConnection: 'azurerm-connection'
   k8sNamespace: 'auth-app'
+  sonarQubeServiceConnection: 'SonarQube-Service'
+  sonarProjectKey: 'project3-group5'
+  nodeVersion: "20.x"
 
 stages:
 
@@ -26,6 +29,44 @@ stages:
         vmImage: 'ubuntu-latest'
       steps:
         - checkout: self
+
+        - task: NodeTool@0
+          inputs:
+            versionSpec: "$(nodeVersion)"
+          displayName: "Use Node.js $(nodeVersion)"
+
+        - task: SonarQubePrepare@7
+          inputs:
+            SonarQube: "$(sonarQubeServiceConnection)"
+            scannerMode: "CLI"
+            configMode: "manual"
+            cliProjectKey: "$(sonarProjectKey)"
+            cliProjectName: "Frontend Authentication App"
+            cliSources: "."
+          displayName: "Prepare SonarQube Analysis"
+
+        - script: |
+            npm install
+          displayName: "Install Dependencies"
+
+        - task: SonarQubeAnalyze@7
+          displayName: "Run SonarQube Analysis"
+
+        - script: |
+            npm test
+          displayName: "Run Tests"
+
+        - task: PublishTestResults@2
+          inputs:
+            testResultsFormat: "JUnit"
+            testResultsFiles: "test-results/test-results.xml"
+          condition: succeededOrFailed()
+          displayName: "Publish Test Results"
+
+        - task: SonarQubePublish@7
+          inputs:
+            pollingTimeoutSec: "300"
+          displayName: "Publish SonarQube Results"
 
         # Docker Build
         - task: Docker@2
