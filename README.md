@@ -1,3 +1,9 @@
+**_NOTE:_** this repo is a part of a project that consists of 3 repositories.
+
+Terraform: https://github.com/Dmoayad/terraform-project3  
+Backend: https://github.com/Dmoayad/authentication-app-backend.group5  
+Frontend: https://github.com/Dmoayad/authentication-app-frontend.group5
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
